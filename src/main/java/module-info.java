@@ -1,4 +1,4 @@
-module com.example.progettometodologieprogrammazione2526 {
+module it.unicam.cs.mpgc.rpg123388 {
     requires javafx.controls;
     requires javafx.fxml;
 
