@@ -2,9 +2,9 @@ package it.unicam.cs.mpgc.rpg123388.model;
 
 public abstract class BaseCharacter implements  GameCharacter {
 
-    private final String name;
+    private String name;
     private int health;
-    private final int maxHealth;
+    private int maxHealth;
     private int attackPower;
 
     public BaseCharacter(String name, int maxHealth, int attackPower) {
@@ -37,5 +37,18 @@ public abstract class BaseCharacter implements  GameCharacter {
     @Override
     public boolean isAlive() {
         return this.health > 0;
+    }
+
+    protected void increaseMaxHealth(int amount) {
+        if (amount > 0) {
+            this.maxHealth += amount;
+            this.health += amount;
+        }
+    }
+
+    protected void increaseAttackPower(int amount) {
+        if (amount > 0) {
+            this.attackPower += amount;
+        }
     }
 }

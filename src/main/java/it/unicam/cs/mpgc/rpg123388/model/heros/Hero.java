@@ -1,52 +1,33 @@
 package it.unicam.cs.mpgc.rpg123388.model.heros;
 
-import it.unicam.cs.mpgc.rpg123388.model.GameCharacter;
+import it.unicam.cs.mpgc.rpg123388.model.BaseCharacter;
 
-public abstract class Hero implements GameCharacter {
-    private final String name;
-    private int health;
-    private int maxHealth;
-    private int attackPower;
+public abstract class Hero extends BaseCharacter {
 
-    public Hero(String name, int health, int maxHealth, int attackPower) {
-        this.name = name;
-        this.health = health;
-        this.maxHealth = maxHealth;
-        this.attackPower = attackPower;
+    private int level;
+    private int experience;
+
+    public Hero(String name, int maxHealth, int attackPower) {
+        super(name, maxHealth, attackPower);
+        this.level = 1;
+        this.experience = 0;
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
+    public int getLevel() { return level; }
 
-    @Override
-    public int getHealth() {
-        return health;
-    }
+    public int getExperience() { return experience; }
 
-    @Override
-    public int getMaxHealth() {
-        return maxHealth;
-    }
-
-    @Override
-    public int getAttackPower() {
-        return attackPower;
-    }
-
-    @Override
-    public void takeDamage(int damage) {
-        if (damage > 0) {
-            this.health -= damage;
-            if (this.health < 0) {
-                this.health = 0;
+    public void gainExperience(int xp) {
+        if (xp > 0) {
+            this.experience += xp;
+            if (this.experience >= 100 * this.level) {
+                this.experience -= (100 * this.level);
+                this.level++;
+                levelUpStats();
             }
         }
     }
 
-    @Override
-    public boolean isAlive() {
-        return this.health > 0;
-    }
+    // metodo per decidere come far salire le statistiche
+    protected abstract void levelUpStats();
 }
