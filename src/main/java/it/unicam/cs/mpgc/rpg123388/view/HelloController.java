@@ -8,15 +8,19 @@ import it.unicam.cs.mpgc.rpg123388.model.heros.Mage;
 import it.unicam.cs.mpgc.rpg123388.model.villain.Monster;
 import it.unicam.cs.mpgc.rpg123388.model.villain.MonsterFactory;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HelloController {
 
-    @FXML
-    private TextArea gameLog;
+    @FXML private TextArea gameLog;
+    @FXML private VBox partyBox;
+    @FXML private VBox enemyBox;
 
     private List<Hero> party;
     private List<Monster> currentEncounter;
@@ -36,6 +40,8 @@ public class HelloController {
 
         gameLog.setText("Benvenuti nel Dungeon!\n");
         gameLog.appendText("Un gruppo di " + currentEncounter.size() + " nemici appare!\n");
+
+        updateUIStats();
     }
 
     @FXML
@@ -44,6 +50,7 @@ public class HelloController {
             gameLog.appendText("\nVITTORIA! La stanza è già vuota. Prossimo incontro in arrivo...\n");
             currentEncounter = monsterFactory.createEncounter(2);
             gameLog.appendText("Appaiono " + currentEncounter.size() + " nuovi nemici!\n");
+            updateUIStats();
             return;
         }
 
@@ -51,11 +58,7 @@ public class HelloController {
 
         for (Hero hero : party) {
             if (hero.isAlive() && !currentEncounter.isEmpty()) {
-                // Esempio di scelta tattica:
-                // Se è un Mago (Merlino), fa attacco AoE (ad area)
-                // Se è un Druido (Panoramix), attacca il primo bersaglio
                 boolean isMage = hero instanceof Mage;
-
                 if (isMage) {
                     actions.add(new CombatAction(hero, new ArrayList<>(currentEncounter), true));
                 } else {
@@ -64,10 +67,8 @@ public class HelloController {
             }
         }
 
-        // Eseguiamo il turno tramite il CombatManager e otteniamo il log
         String turnResult = combatManager.executeTacticalTurn(actions, party, currentEncounter);
 
-        // Stampiamo i risultati reali nella View
         gameLog.appendText("\n--- NUOVO TURNO ---\n");
         gameLog.appendText(turnResult);
 
@@ -75,10 +76,45 @@ public class HelloController {
             gameLog.appendText("\nVITTORIA! Stanza ripulita.\n");
         }
 
-        // Controlliamo se il party è ancora vivo
         boolean partyAlive = party.stream().anyMatch(Hero::isAlive);
         if (!partyAlive) {
             gameLog.appendText("\nIL PARTY È STATO SCONFITTO... GAME OVER.\n");
+        }
+
+        updateUIStats();
+    }
+
+    /**
+     * Metodo helper che pulisce la grafica e ridisegna le barre della vita
+     * leggendo i dati aggiornati dal model
+     */
+    private void updateUIStats() {
+        partyBox.getChildren().clear();
+        enemyBox.getChildren().clear();
+
+        for (Hero hero : party) {
+            if (hero.isAlive()) {
+                Label nameLabel = new Label(hero.getName() + " (" + hero.getHealth() + "/" + hero.getMaxHealth() + ")");
+                nameLabel.setStyle("-fx-font-weight: bold;");
+
+                double hpPercentage = (double) hero.getHealth() / hero.getMaxHealth();
+                ProgressBar hpBar = new ProgressBar(hpPercentage);
+                hpBar.setStyle("-fx-accent: green;"); // Colore barra
+
+                partyBox.getChildren().addAll(nameLabel, hpBar);
+            }
+        }
+
+        for (Monster monster : currentEncounter) {
+            if (monster.isAlive()) {
+                Label nameLabel = new Label(monster.getName() + " (" + monster.getHealth() + "/" + monster.getMaxHealth() + ")");
+
+                double hpPercentage = (double) monster.getHealth() / monster.getMaxHealth();
+                ProgressBar hpBar = new ProgressBar(hpPercentage);
+                hpBar.setStyle("-fx-accent: red;");
+
+                enemyBox.getChildren().addAll(nameLabel, hpBar);
+            }
         }
     }
 }
