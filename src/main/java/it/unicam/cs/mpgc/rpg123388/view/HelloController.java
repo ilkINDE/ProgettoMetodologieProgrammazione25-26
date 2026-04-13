@@ -11,6 +11,11 @@ import java.util.*;
 
 public class HelloController {
 
+    @FXML private VBox selectionScreen;
+    @FXML private CheckBox chkWarrior, chkMage, chkDruid, chkPaladin, chkThief;
+    @FXML private Button btnStart;
+
+    @FXML private VBox gameScreen;
     @FXML private TextArea gameLog;
     @FXML private VBox partyBox, enemyBox, commandCenterBox;
     @FXML private Label roomLabel;
@@ -27,12 +32,33 @@ public class HelloController {
     public void initialize() {
         combatManager = new CombatManager();
         monsterFactory = new MonsterFactory();
+        party = new ArrayList<>();
+    }
 
-        party = new ArrayList<>(List.of(
-                new Warrior("Arthur"),
-                new Mage("Merlino"),
-                new Druid("Panoramix")
-        ));
+    @FXML
+    public void onHeroSelectionChange() {
+        int count = 0;
+        if (chkWarrior.isSelected()) count++;
+        if (chkMage.isSelected()) count++;
+        if (chkDruid.isSelected()) count++;
+        if (chkPaladin.isSelected()) count++;
+        if (chkThief.isSelected()) count++;
+
+        btnStart.setDisable(count != 3);
+    }
+
+    @FXML
+    public void onStartGameClick() {
+        if (chkWarrior.isSelected()) party.add(new Warrior("Arthur"));
+        if (chkMage.isSelected()) party.add(new Mage("Merlino"));
+        if (chkDruid.isSelected()) party.add(new Druid("Panoramix"));
+        if (chkPaladin.isSelected()) party.add(new Paladin("Uther"));
+        if (chkThief.isSelected()) party.add(new Thief("Garrett"));
+
+        selectionScreen.setVisible(false);
+        selectionScreen.setManaged(false);
+        gameScreen.setVisible(true);
+        gameScreen.setManaged(true);
 
         prossimaStanza();
     }
@@ -42,7 +68,6 @@ public class HelloController {
         int stanzaCorrente = monsterFactory.getRoomCounter();
 
         roomLabel.setText("Stanza: " + stanzaCorrente);
-
         String msg = (stanzaCorrente % 5 == 0) ? "!!! ATTENZIONE: UN BOSS APPARE !!!" : "Sei entrato in una nuova stanza.";
         gameLog.appendText("\n" + msg + "\nIncontrati " + currentEncounter.size() + " nemici.\n");
 
@@ -66,10 +91,17 @@ public class HelloController {
             ActionType type;
             List<GameCharacter> targets = new ArrayList<>();
 
-            if (actionName.contains("Buff") || actionName.contains("Elisir") || actionName.contains("Mura")) {
-                if (hero instanceof Warrior) type = ActionType.BUFF_DEFENSE_PARTY;
-                else if (hero instanceof Druid) type = ActionType.HEAL_PARTY;
-                else {
+            if (actionName.equals(getHeroBuffName(hero))) {
+                if (hero instanceof Warrior) {
+                    type = ActionType.BUFF_DEFENSE_PARTY;
+                    targets.addAll(party);
+                } else if (hero instanceof Druid || hero instanceof Paladin) {
+                    type = ActionType.HEAL_PARTY;
+                    targets.addAll(party);
+                } else if (hero instanceof Thief) {
+                    type = ActionType.BUFF_ATTACK_SINGLE;
+                    targets.add(hero);
+                } else {
                     type = ActionType.BUFF_ATTACK_SINGLE;
                     targets.add(party.stream().filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero));
                 }
@@ -123,14 +155,21 @@ public class HelloController {
             actionCb.valueProperty().addListener((obs, oldV, newV) -> {
                 personalDescLabel.setText(getAbilityInfo(hero, newV));
                 targetCb.getItems().clear();
-                if (newV.contains("Buff Alleato") || (newV.contains("Saggezza"))) {
-                    targetCb.getItems().addAll(heroNames);
-                    targetCb.setDisable(false);
-                } else if (newV.contains("AoE") || newV.contains("Party")) {
-                    targetCb.setDisable(true);
+
+                if (newV.equals(getHeroAttackName(hero))) {
+                    if (hero instanceof Mage) {
+                        targetCb.setDisable(true);
+                    } else {
+                        targetCb.getItems().addAll(monsterNames);
+                        targetCb.setDisable(false);
+                    }
                 } else {
-                    targetCb.getItems().addAll(monsterNames);
-                    targetCb.setDisable(false);
+                    if (hero instanceof Mage) {
+                        targetCb.getItems().addAll(heroNames);
+                        targetCb.setDisable(false);
+                    } else {
+                        targetCb.setDisable(true);
+                    }
                 }
                 if (!targetCb.getItems().isEmpty()) targetCb.getSelectionModel().selectFirst();
             });
@@ -163,8 +202,26 @@ public class HelloController {
         if (hero instanceof Warrior) return actionName.contains("Fendente") ? "Attacco fisico potente." : "Danni subiti -10 (Party).";
         if (hero instanceof Mage) return actionName.contains("Tempesta") ? "Attacco AoE magico." : "Attacco alleato +15.";
         if (hero instanceof Druid) return actionName.contains("Radici") ? "Danno a bersaglio singolo." : "Cura il party (+20 HP).";
+        if (hero instanceof Paladin) return actionName.contains("Martello") ? "Danno fisico contundente." : "Cura il party (+20 HP).";
+        if (hero instanceof Thief) return actionName.contains("Pugnalata") ? "Danno letale su singolo bersaglio." : "Concentrazione Letale: +15 Attacco Personale.";
         return "";
     }
-    private String getHeroAttackName(Hero h) { if(h instanceof Warrior) return "Fendente Pesante"; if(h instanceof Mage) return "Tempesta Arcana (AoE)"; return "Radici Stritolanti"; }
-    private String getHeroBuffName(Hero h) { if(h instanceof Warrior) return "Mura di Ferro (Buff)"; if(h instanceof Mage) return "Saggezza di Avalon (Buff)"; return "Elisir di Vita (Cura)"; }
+
+    private String getHeroAttackName(Hero h) {
+        if(h instanceof Warrior) return "Fendente Pesante";
+        if(h instanceof Mage) return "Tempesta Arcana (AoE)";
+        if(h instanceof Druid) return "Radici Stritolanti";
+        if(h instanceof Paladin) return "Martello della Giustizia";
+        if(h instanceof Thief) return "Pugnalata alle Spalle";
+        return "Attacco";
+    }
+
+    private String getHeroBuffName(Hero h) {
+        if(h instanceof Warrior) return "Mura di Ferro (Buff Difesa)";
+        if(h instanceof Mage) return "Saggezza di Avalon (Buff Attacco)";
+        if(h instanceof Druid) return "Elisir di Vita (Cura Party)";
+        if(h instanceof Paladin) return "Luce Divina (Cura Party)";
+        if(h instanceof Thief) return "Concentrazione (Buff Personale)";
+        return "Buff";
+    }
 }
