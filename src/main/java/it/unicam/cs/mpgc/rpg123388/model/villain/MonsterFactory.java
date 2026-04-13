@@ -4,11 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Classe responsabile della generazione dinamica dei nemici.
- * Applica il pattern Factory per nascondere la complessità di creazione dei gruppi (Encounter).
- */
-
 public class MonsterFactory {
 
     private final Random random = new Random();

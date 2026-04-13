@@ -29,7 +29,7 @@ public class CombatManager {
                     GameCharacter target = action.getTargets().get(0);
                     if (target.isAlive() && target instanceof Monster) {
                         log.append(hero.getName()).append(" si scaglia su ").append(target.getName()).append("!\n");
-                        dealDamageToMonster(hero, (Monster) target, log, enemies);
+                        dealDamageToMonster(hero, (Monster) target, log, enemies,party);
                     }
                     break;
 
@@ -37,7 +37,7 @@ public class CombatManager {
                     log.append(hero.getName()).append(" lancia Tempesta Arcana su tutti i nemici!\n");
                     List<Monster> targetsCopy = List.copyOf(enemies);
                     for (Monster m : targetsCopy) {
-                        dealDamageToMonster(hero, m, log, enemies);
+                        dealDamageToMonster(hero, m, log, enemies,party);
                     }
                     break;
 
@@ -74,8 +74,6 @@ public class CombatManager {
                 List<Hero> aliveHeroes = party.stream().filter(Hero::isAlive).toList();
                 if (!aliveHeroes.isEmpty()) {
                     Hero randomHero = aliveHeroes.get(random.nextInt(aliveHeroes.size()));
-
-                    // --- INTELLIGENZA ARTIFICIALE SPECIFICA ---
 
                     if (monster instanceof GoblinShaman) {
                         // Lo Sciamano ha il 70% di probabilità di buffare i mostri, 30% di attaccare
@@ -133,13 +131,29 @@ public class CombatManager {
         return log.toString();
     }
 
-    private void dealDamageToMonster(Hero hero, Monster target, StringBuilder log, List<Monster> enemies) {
+    private void dealDamageToMonster(Hero hero, Monster target, StringBuilder log, List<Monster> enemies, List<Hero> party) {
         target.takeDamage(hero.getAttackPower());
         log.append(" -> ").append(target.getName()).append(" subisce ").append(hero.getAttackPower()).append(" danni.\n");
 
         if (!target.isAlive()) {
             log.append(" -> ").append(target.getName()).append(" è stato sconfitto!\n");
-            hero.gainExperience(target.getXpReward());
+
+            int totalXp = target.getXpReward();
+            int sharedXp = totalXp / 2;
+
+            for (Hero h : party) {
+                if (h.isAlive()) {
+                    if (h == hero) {
+                        // Chi ha ucciso riceve il massimo della exp
+                        h.gainExperience(totalXp);
+                        log.append("    [!] ").append(h.getName()).append(" riceve ").append(totalXp).append(" XP (Colpo di grazia)!\n");
+                    } else {
+                        // Gli altri ricevono metà exp
+                        h.gainExperience(sharedXp);
+                        log.append("    [+] ").append(h.getName()).append(" riceve ").append(sharedXp).append(" XP (Assistenza).\n");
+                    }
+                }
+            }
             enemies.remove(target);
         }
     }
