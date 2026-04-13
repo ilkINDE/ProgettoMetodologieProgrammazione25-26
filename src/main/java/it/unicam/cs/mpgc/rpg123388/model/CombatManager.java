@@ -1,7 +1,10 @@
 package it.unicam.cs.mpgc.rpg123388.model;
 
 import it.unicam.cs.mpgc.rpg123388.model.heros.Hero;
+import it.unicam.cs.mpgc.rpg123388.model.villain.Dragon;
+import it.unicam.cs.mpgc.rpg123388.model.villain.GoblinShaman;
 import it.unicam.cs.mpgc.rpg123388.model.villain.Monster;
+import it.unicam.cs.mpgc.rpg123388.model.villain.Orc;
 
 import java.util.List;
 import java.util.Random;
@@ -65,19 +68,64 @@ public class CombatManager {
         }
 
         // Fase di controffensiva
-        log.append("\n Controffensiva Nemica \n");
+        log.append("\n --- Controffensiva Nemica ---\n");
         for (Monster monster : enemies) {
             if (monster.isAlive() && !party.isEmpty()) {
                 List<Hero> aliveHeroes = party.stream().filter(Hero::isAlive).toList();
                 if (!aliveHeroes.isEmpty()) {
-                    Hero target = aliveHeroes.get(random.nextInt(aliveHeroes.size()));
+                    Hero randomHero = aliveHeroes.get(random.nextInt(aliveHeroes.size()));
 
-                    int oldHealth = target.getHealth();
-                    target.takeDamage(monster.getAttackPower());
-                    int damageTaken = oldHealth - target.getHealth();
+                    // --- INTELLIGENZA ARTIFICIALE SPECIFICA ---
 
-                    log.append(monster.getName()).append(" attacca ").append(target.getName())
-                            .append(" per ").append(damageTaken).append(" danni.\n");
+                    if (monster instanceof GoblinShaman) {
+                        // Lo Sciamano ha il 70% di probabilità di buffare i mostri, 30% di attaccare
+                        if (random.nextInt(100) < 70) {
+                            log.append(monster.getName()).append(" intona un canto! I nemici subiscono meno danni.\n");
+                            for (Monster m : enemies) {
+                                if (m.isAlive()) m.addTemporaryDamageReduction(5);
+                            }
+                        } else {
+                            int oldHp = randomHero.getHealth();
+                            randomHero.takeDamage(monster.getAttackPower());
+                            log.append(monster.getName()).append(" lancia una maledizione su ").append(randomHero.getName())
+                                    .append(" per ").append(oldHp - randomHero.getHealth()).append(" danni.\n");
+                        }
+                    }
+                    else if (monster instanceof Orc) {
+                        // L'Orco ha il 20% di probabilità di buffarsi l'attacco
+                        if (random.nextInt(100) < 20) {
+                            log.append(monster.getName()).append(" ruggisce di rabbia! Il suo attacco aumenta.\n");
+                            monster.addTemporaryAttackBoost(15);
+                        } else {
+                            int oldHp = randomHero.getHealth();
+                            randomHero.takeDamage(monster.getAttackPower());
+                            log.append(monster.getName()).append(" colpisce con la clava ").append(randomHero.getName())
+                                    .append(" per ").append(oldHp - randomHero.getHealth()).append(" danni.\n");
+                        }
+                    }
+                    else if (monster instanceof Dragon) {
+                        // Il Drago ha il 30% di probabilità di usare un attacco ad area
+                        if (random.nextInt(100) < 30) {
+                            log.append(monster.getName()).append(" scatena un SOFFIO DI FUOCO su tutto il party!\n");
+                            for (Hero h : aliveHeroes) {
+                                int oldHp = h.getHealth();
+                                h.takeDamage(monster.getAttackPower() - 5); // Fa leggermente meno danni ad area
+                                log.append(" -> ").append(h.getName()).append(" subisce ").append(oldHp - h.getHealth()).append(" danni.\n");
+                            }
+                        } else {
+                            int oldHp = randomHero.getHealth();
+                            randomHero.takeDamage(monster.getAttackPower());
+                            log.append(monster.getName()).append(" morde ferocemente ").append(randomHero.getName())
+                                    .append(" per ").append(oldHp - randomHero.getHealth()).append(" danni.\n");
+                        }
+                    }
+                    else {
+                        // Goblin base o altri mostri: attacco fisico standard
+                        int oldHp = randomHero.getHealth();
+                        randomHero.takeDamage(monster.getAttackPower());
+                        log.append(monster.getName()).append(" attacca ").append(randomHero.getName())
+                                .append(" per ").append(oldHp - randomHero.getHealth()).append(" danni.\n");
+                    }
                 }
             }
         }

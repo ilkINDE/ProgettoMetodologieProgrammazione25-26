@@ -1,12 +1,8 @@
 package it.unicam.cs.mpgc.rpg123388.view;
 
-import it.unicam.cs.mpgc.rpg123388.model.ActionType;
-import it.unicam.cs.mpgc.rpg123388.model.CombatAction;
-import it.unicam.cs.mpgc.rpg123388.model.CombatManager;
-import it.unicam.cs.mpgc.rpg123388.model.GameCharacter;
+import it.unicam.cs.mpgc.rpg123388.model.*;
 import it.unicam.cs.mpgc.rpg123388.model.heros.*;
-import it.unicam.cs.mpgc.rpg123388.model.villain.Monster;
-import it.unicam.cs.mpgc.rpg123388.model.villain.MonsterFactory;
+import it.unicam.cs.mpgc.rpg123388.model.villain.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -17,6 +13,7 @@ public class HelloController {
 
     @FXML private TextArea gameLog;
     @FXML private VBox partyBox, enemyBox, commandCenterBox;
+    @FXML private Label roomLabel;
 
     private List<Hero> party;
     private List<Monster> currentEncounter;
@@ -30,47 +27,32 @@ public class HelloController {
     public void initialize() {
         combatManager = new CombatManager();
         monsterFactory = new MonsterFactory();
-        party = new ArrayList<>(List.of(new Warrior("Arthur"), new Mage("Merlino"), new Druid("Panoramix")));
-        currentEncounter = monsterFactory.createEncounter(1);
+
+        party = new ArrayList<>(List.of(
+                new Warrior("Arthur"),
+                new Mage("Merlino"),
+                new Druid("Panoramix")
+        ));
+
+        prossimaStanza();
+    }
+
+    private void prossimaStanza() {
+        currentEncounter = monsterFactory.generateNextRoom();
+        int stanzaCorrente = monsterFactory.getRoomCounter();
+
+        roomLabel.setText("Stanza: " + stanzaCorrente);
+
+        String msg = (stanzaCorrente % 5 == 0) ? "!!! ATTENZIONE: UN BOSS APPARE !!!" : "Sei entrato in una nuova stanza.";
+        gameLog.appendText("\n" + msg + "\nIncontrati " + currentEncounter.size() + " nemici.\n");
+
         updateUIStats();
-    }
-
-    private String getAbilityInfo(Hero hero, String actionName) {
-        if (actionName == null) return "";
-        if (hero instanceof Warrior) {
-            if (actionName.contains("Fendente")) return "Attacco singolo potente. Danno fisico alto.";
-            return "Grido di battaglia: Riduce i danni subiti dal party per questo turno.";
-        }
-        if (hero instanceof Mage) {
-            if (actionName.contains("Tempesta")) return "Colpisce tutti i nemici con energia arcana.";
-            return "Infonde magia in un alleato, aumentando il suo Attacco (+15) per questo turno.";
-        }
-        if (hero instanceof Druid) {
-            if (actionName.contains("Radici")) return "Intrattiene il nemico infliggendo danni diretti.";
-            return "Cura l'intero party rigenerando 20 HP a ciascuno.";
-        }
-        return "";
-    }
-
-    private String getHeroAttackName(Hero hero) {
-        if (hero instanceof Warrior) return "Fendente Pesante";
-        if (hero instanceof Mage) return "Tempesta Arcana (AoE)";
-        if (hero instanceof Druid) return "Radici Stritolanti";
-        return "Attacco";
-    }
-
-    private String getHeroBuffName(Hero hero) {
-        if (hero instanceof Warrior) return "Mura di Ferro (Buff Party)";
-        if (hero instanceof Mage) return "Saggezza di Avalon (Buff Alleato)";
-        if (hero instanceof Druid) return "Elisir di Vita (Cura Party)";
-        return "Buff";
     }
 
     @FXML
     public void onAttackButtonClick() {
         if (currentEncounter.isEmpty()) {
-            currentEncounter = monsterFactory.createEncounter(2);
-            updateUIStats();
+            prossimaStanza();
             return;
         }
 
@@ -84,35 +66,31 @@ public class HelloController {
             ActionType type;
             List<GameCharacter> targets = new ArrayList<>();
 
-            if (actionName.equals(getHeroAttackName(hero))) {
-                if (hero instanceof Warrior || hero instanceof Druid) {
-                    type = ActionType.SINGLE_ATTACK;
-                    Monster target = currentEncounter.stream()
-                            .filter(m -> m.getName().equals(targetName)).findFirst().orElse(currentEncounter.get(0));
-                    targets.add(target);
-                } else {
-                    type = ActionType.AOE_ATTACK;
-                    targets.addAll(currentEncounter);
+            if (actionName.contains("Buff") || actionName.contains("Elisir") || actionName.contains("Mura")) {
+                if (hero instanceof Warrior) type = ActionType.BUFF_DEFENSE_PARTY;
+                else if (hero instanceof Druid) type = ActionType.HEAL_PARTY;
+                else {
+                    type = ActionType.BUFF_ATTACK_SINGLE;
+                    targets.add(party.stream().filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero));
                 }
             } else {
-                if (hero instanceof Warrior) {
-                    type = ActionType.BUFF_DEFENSE_PARTY;
-                    targets.addAll(party);
-                } else if (hero instanceof Druid) {
-                    type = ActionType.HEAL_PARTY;
-                    targets.addAll(party);
+                if (hero instanceof Mage) {
+                    type = ActionType.AOE_ATTACK;
+                    targets.addAll(currentEncounter);
                 } else {
-                    type = ActionType.BUFF_ATTACK_SINGLE;
-                    Hero targetAlly = party.stream()
-                            .filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero);
-                    targets.add(targetAlly);
+                    type = ActionType.SINGLE_ATTACK;
+                    targets.add(currentEncounter.stream().filter(m -> m.getName().equals(targetName)).findFirst().orElse(currentEncounter.get(0)));
                 }
             }
-
             actions.add(new CombatAction(hero, targets, type));
         }
 
         gameLog.appendText("\n" + combatManager.executeTacticalTurn(actions, party, currentEncounter));
+
+        if (currentEncounter.isEmpty()) {
+            gameLog.appendText("\nStanza ripulita! Clicca di nuovo per avanzare.\n");
+        }
+
         updateUIStats();
     }
 
@@ -132,7 +110,6 @@ public class HelloController {
 
             VBox heroCommandBox = new VBox(5);
             heroCommandBox.setAlignment(javafx.geometry.Pos.CENTER);
-
             HBox row = new HBox(10);
             row.setAlignment(javafx.geometry.Pos.CENTER);
 
@@ -140,65 +117,54 @@ public class HelloController {
             actionCb.getItems().addAll(getHeroAttackName(hero), getHeroBuffName(hero));
 
             ComboBox<String> targetCb = new ComboBox<>();
-
             Label personalDescLabel = new Label(getAbilityInfo(hero, getHeroAttackName(hero)));
-            personalDescLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #555555; -fx-font-size: 12px;");
+            personalDescLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #555555; -fx-font-size: 11px;");
 
-            actionCb.valueProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal == null) return;
-
-                personalDescLabel.setText(getAbilityInfo(hero, newVal));
-
+            actionCb.valueProperty().addListener((obs, oldV, newV) -> {
+                personalDescLabel.setText(getAbilityInfo(hero, newV));
                 targetCb.getItems().clear();
-
-                if (newVal.equals(getHeroAttackName(hero))) {
-                    if (hero instanceof Mage) {
-                        targetCb.setDisable(true);
-                    } else {
-                        targetCb.getItems().addAll(monsterNames);
-                        if (!monsterNames.isEmpty()) targetCb.getSelectionModel().selectFirst();
-                        targetCb.setDisable(false);
-                    }
+                if (newV.contains("Buff Alleato") || (newV.contains("Saggezza"))) {
+                    targetCb.getItems().addAll(heroNames);
+                    targetCb.setDisable(false);
+                } else if (newV.contains("AoE") || newV.contains("Party")) {
+                    targetCb.setDisable(true);
                 } else {
-                    if (hero instanceof Mage) {
-                        targetCb.getItems().addAll(heroNames);
-                        if (!heroNames.isEmpty()) targetCb.getSelectionModel().selectFirst();
-                        targetCb.setDisable(false);
-                    } else {
-                        targetCb.setDisable(true);
-                    }
+                    targetCb.getItems().addAll(monsterNames);
+                    targetCb.setDisable(false);
                 }
+                if (!targetCb.getItems().isEmpty()) targetCb.getSelectionModel().selectFirst();
             });
 
             actionCb.getSelectionModel().selectFirst();
-
             heroActionSelectors.put(hero, actionCb);
             heroTargetSelectors.put(hero, targetCb);
             row.getChildren().addAll(new Label(hero.getName() + ":"), actionCb, targetCb);
-
             heroCommandBox.getChildren().addAll(row, personalDescLabel);
             commandCenterBox.getChildren().add(heroCommandBox);
         }
     }
 
     private void addStatBar(VBox box, GameCharacter c, String color) {
-        String infoText;
-
+        String info;
         if (c instanceof Hero) {
-            Hero hero = (Hero) c;
-            int xpForNextLevel = hero.getLevel() * 100;
-            infoText = hero.getName() + " - Lvl " + hero.getLevel() + " [XP: " + hero.getExperience() + "/" + xpForNextLevel + "]\n"
-                    + "HP: " + hero.getHealth() + "/" + hero.getMaxHealth();
-        } else {
-            infoText = c.getName() + " (" + c.getHealth() + "/" + c.getMaxHealth() + ")";
-        }
+            Hero h = (Hero) c;
+            info = String.format("%s - Lvl %d [XP:%d/%d]\nHP:%d/%d",
+                    h.getName(), h.getLevel(), h.getExperience(), h.getLevel()*100, h.getHealth(), h.getMaxHealth());
+        } else info = c.getName() + " (" + c.getHealth() + "/" + c.getMaxHealth() + ")";
 
-        Label l = new Label(infoText);
-        l.setStyle("-fx-font-weight: bold; -fx-text-alignment: center;");
-
+        Label l = new Label(info);
+        l.setStyle("-fx-font-weight: bold; -fx-text-alignment: center; -fx-font-size: 11px;");
         ProgressBar b = new ProgressBar((double) c.getHealth() / c.getMaxHealth());
         b.setStyle("-fx-accent: " + color + ";");
-
         box.getChildren().addAll(l, b);
     }
+
+    private String getAbilityInfo(Hero hero, String actionName) {
+        if (hero instanceof Warrior) return actionName.contains("Fendente") ? "Attacco fisico potente." : "Danni subiti -10 (Party).";
+        if (hero instanceof Mage) return actionName.contains("Tempesta") ? "Attacco AoE magico." : "Attacco alleato +15.";
+        if (hero instanceof Druid) return actionName.contains("Radici") ? "Danno a bersaglio singolo." : "Cura il party (+20 HP).";
+        return "";
+    }
+    private String getHeroAttackName(Hero h) { if(h instanceof Warrior) return "Fendente Pesante"; if(h instanceof Mage) return "Tempesta Arcana (AoE)"; return "Radici Stritolanti"; }
+    private String getHeroBuffName(Hero h) { if(h instanceof Warrior) return "Mura di Ferro (Buff)"; if(h instanceof Mage) return "Saggezza di Avalon (Buff)"; return "Elisir di Vita (Cura)"; }
 }
