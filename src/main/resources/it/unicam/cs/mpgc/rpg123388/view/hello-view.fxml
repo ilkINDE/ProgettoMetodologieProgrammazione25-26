@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
 <VBox alignment="CENTER" spacing="15.0" xmlns:fx="http://javafx.com/fxml"
       fx:controller="it.unicam.cs.mpgc.rpg123388.view.HelloController">
@@ -13,13 +11,17 @@
 
     <HBox spacing="50" alignment="CENTER">
         <VBox fx:id="partyBox" spacing="5" alignment="CENTER_LEFT" />
-
         <VBox fx:id="enemyBox" spacing="5" alignment="CENTER_RIGHT" />
     </HBox>
 
     <TextArea fx:id="gameLog" editable="false" prefHeight="300.0" prefWidth="550.0"
               style="-fx-font-family: 'Consolas'; -fx-font-size: 14px;" />
 
-    <Button text="Attacca" onAction="#onAttackButtonClick"
-            style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" />
+    <HBox spacing="10" alignment="CENTER">
+        <Label text="Bersaglio:" style="-fx-font-weight: bold;" />
+        <ComboBox fx:id="targetSelector" prefWidth="150.0" promptText="Seleziona nemico" />
+
+        <Button text="⚔️ Attacca!" onAction="#onAttackButtonClick"
+                style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" />
+    </HBox>
 </VBox>
