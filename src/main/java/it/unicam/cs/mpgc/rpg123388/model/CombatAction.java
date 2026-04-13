@@ -1,22 +1,20 @@
 package it.unicam.cs.mpgc.rpg123388.model;
 
 import it.unicam.cs.mpgc.rpg123388.model.heros.Hero;
-import it.unicam.cs.mpgc.rpg123388.model.villain.Monster;
-
 import java.util.List;
 
 public class CombatAction {
-        private final Hero actor;
-        private final List<Monster> targets;
-        private final boolean isAoE;// verifica se è o meno un attacco ad area
+    private final Hero actor;
+    private final List<? extends GameCharacter> targets;
+    private final ActionType type;
 
-        public CombatAction(Hero actor, List<Monster> targets, boolean isAoE) {
-            this.actor = actor;
-            this.targets = targets;
-            this.isAoE = isAoE;
-        }
+    public CombatAction(Hero actor, List<? extends GameCharacter> targets, ActionType type) {
+        this.actor = actor;
+        this.targets = targets;
+        this.type = type;
+    }
 
-        public Hero getActor() { return actor; }
-        public List<Monster> getTargets() { return targets; }
-        public boolean isAoE() { return isAoE; }
+    public Hero getActor() { return actor; }
+    public List<? extends GameCharacter> getTargets() { return targets; }
+    public ActionType getType() { return type; }
 }

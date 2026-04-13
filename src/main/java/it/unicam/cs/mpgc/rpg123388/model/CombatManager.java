@@ -10,60 +10,80 @@ public class CombatManager {
 
     private final Random random = new Random();
 
-    /**
-     * Esegue il turno basandosi sulle scelte tattiche del giocatore.
-     *
-     * @param playerActions La lista di azioni scelte dal giocatore.
-     * @param party         Il party degli eroi.
-     * @param enemies       I nemici ancora in vita.
-     */
-
     public String executeTacticalTurn(List<CombatAction> playerActions, List<Hero> party, List<Monster> enemies) {
         StringBuilder log = new StringBuilder();
 
-        // Gli eroi eseguono gli attacchi scelti
+        // reset dei buff
+        for (Hero h : party) h.resetTemporaryBuffs();
+
+        // Esecuzione mosse alleate
         for (CombatAction action : playerActions) {
             Hero hero = action.getActor();
-
-            // Se l'eroe è morto prima di attaccare, salta il turno
             if (!hero.isAlive()) continue;
 
-            if (action.isAoE()) {
-                // Attacco ad area
-                log.append(hero.getName()).append(" lancia un attacco ad area!\n");
+            switch (action.getType()) {
+                case SINGLE_ATTACK:
+                    GameCharacter target = action.getTargets().get(0);
+                    if (target.isAlive() && target instanceof Monster) {
+                        log.append(hero.getName()).append(" si scaglia su ").append(target.getName()).append("!\n");
+                        dealDamageToMonster(hero, (Monster) target, log, enemies);
+                    }
+                    break;
 
-                // Uso una copia della lista per evitare errori mentre si rimuovono mostri sconfitti
-                List<Monster> targetsCopy = List.copyOf(action.getTargets());
-                for (Monster target : targetsCopy) {
-                    dealDamageToMonster(hero, target, log, enemies);
-                }
-            } else {
-                // Attacco a singolo target
-                Monster target = action.getTargets().get(0);
-                if (target.isAlive()) {
-                    log.append(hero.getName()).append(" si scaglia su ").append(target.getName()).append("!\n");
-                    dealDamageToMonster(hero, target, log, enemies);
+                case AOE_ATTACK:
+                    log.append(hero.getName()).append(" lancia Tempesta Arcana su tutti i nemici!\n");
+                    List<Monster> targetsCopy = List.copyOf(enemies);
+                    for (Monster m : targetsCopy) {
+                        dealDamageToMonster(hero, m, log, enemies);
+                    }
+                    break;
+
+                case HEAL_PARTY:
+                    log.append(hero.getName()).append(" lancia Elisir di Vita! Il party recupera HP.\n");
+                    for (Hero h : party) {
+                        if (h.isAlive()) {
+                            h.heal(20);
+                        }
+                    }
+                    break;
+
+                case BUFF_DEFENSE_PARTY:
+                    log.append(hero.getName()).append(" alza le Mura di Ferro! Danni ridotti per questo turno.\n");
+                    for (Hero h : party) {
+                        if (h.isAlive()) h.addTemporaryDamageReduction(10);
+                    }
+                    break;
+
+                case BUFF_ATTACK_SINGLE:
+                    GameCharacter ally = action.getTargets().get(0);
+                    if (ally.isAlive() && ally instanceof Hero) {
+                        log.append(hero.getName()).append(" infonde magia su ").append(ally.getName()).append(" (+15 Attacco)!\n");
+                        ((Hero) ally).addTemporaryAttackBoost(15);
+                    }
+                    break;
+            }
+        }
+
+        // Fase di controffensiva
+        log.append("\n Controffensiva Nemica \n");
+        for (Monster monster : enemies) {
+            if (monster.isAlive() && !party.isEmpty()) {
+                List<Hero> aliveHeroes = party.stream().filter(Hero::isAlive).toList();
+                if (!aliveHeroes.isEmpty()) {
+                    Hero target = aliveHeroes.get(random.nextInt(aliveHeroes.size()));
+
+                    int oldHealth = target.getHealth();
+                    target.takeDamage(monster.getAttackPower());
+                    int damageTaken = oldHealth - target.getHealth();
+
+                    log.append(monster.getName()).append(" attacca ").append(target.getName())
+                            .append(" per ").append(damageTaken).append(" danni.\n");
                 }
             }
         }
 
-        // fase di contrattacco
-        log.append("\n Controffensiva Nemica \n");
-        for (Monster monster : enemies) {
-            if (monster.isAlive() && !party.isEmpty()) {
-                // Prende solo gli eroi vivi
-                List<Hero> aliveHeroes = party.stream().filter(Hero::isAlive).toList();
-                if (!aliveHeroes.isEmpty()) {
-                    Hero target = aliveHeroes.get(random.nextInt(aliveHeroes.size()));
-                    target.takeDamage(monster.getAttackPower());
-                    log.append(monster.getName()).append(" attacca ").append(target.getName())
-                            .append(" per ").append(monster.getAttackPower()).append(" danni.\n");
-                  }
-               }
-            }
-
-            return log.toString();
-         }
+        return log.toString();
+    }
 
     private void dealDamageToMonster(Hero hero, Monster target, StringBuilder log, List<Monster> enemies) {
         target.takeDamage(hero.getAttackPower());
