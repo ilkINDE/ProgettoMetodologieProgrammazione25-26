@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -15,15 +14,15 @@
         <VBox fx:id="enemyBox" spacing="5" alignment="CENTER_RIGHT" />
     </HBox>
 
-    <TextArea fx:id="gameLog" editable="false" prefHeight="250.0" prefWidth="550.0"
+    <TextArea fx:id="gameLog" editable="false" prefHeight="200.0" prefWidth="550.0"
               style="-fx-font-family: 'Consolas'; -fx-font-size: 14px;" />
 
     <Separator />
     <Label text="Pannello di Comando" style="-fx-font-weight: bold; -fx-font-size: 16px;" />
 
-    <VBox fx:id="commandCenterBox" spacing="10" alignment="CENTER" />
+    <VBox fx:id="commandCenterBox" spacing="15" alignment="CENTER" />
 
     <Separator />
-    <Button text="Esegui Turno!" onAction="#onAttackButtonClick"
+    <Button text="Esegui Turno" onAction="#onAttackButtonClick"
             style="-fx-font-size: 16px; -fx-padding: 10 20; -fx-cursor: hand; -fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" />
 </VBox>

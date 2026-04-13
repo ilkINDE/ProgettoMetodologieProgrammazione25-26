@@ -1,7 +1,9 @@
 package it.unicam.cs.mpgc.rpg123388.view;
 
+import it.unicam.cs.mpgc.rpg123388.model.ActionType;
 import it.unicam.cs.mpgc.rpg123388.model.CombatAction;
 import it.unicam.cs.mpgc.rpg123388.model.CombatManager;
+import it.unicam.cs.mpgc.rpg123388.model.GameCharacter;
 import it.unicam.cs.mpgc.rpg123388.model.heros.*;
 import it.unicam.cs.mpgc.rpg123388.model.villain.Monster;
 import it.unicam.cs.mpgc.rpg123388.model.villain.MonsterFactory;
@@ -9,82 +11,108 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HelloController {
 
     @FXML private TextArea gameLog;
-    @FXML private VBox partyBox;
-    @FXML private VBox enemyBox;
-    @FXML private VBox commandCenterBox;
+    @FXML private VBox partyBox, enemyBox, commandCenterBox;
 
     private List<Hero> party;
     private List<Monster> currentEncounter;
     private CombatManager combatManager;
     private MonsterFactory monsterFactory;
 
-    private Map<Hero, ComboBox<String>> heroActionSelectors;
-    private Map<Hero, ComboBox<String>> heroTargetSelectors;
+    private Map<Hero, ComboBox<String>> heroActionSelectors = new HashMap<>();
+    private Map<Hero, ComboBox<String>> heroTargetSelectors = new HashMap<>();
 
     @FXML
     public void initialize() {
         combatManager = new CombatManager();
         monsterFactory = new MonsterFactory();
-        heroActionSelectors = new HashMap<>();
-        heroTargetSelectors = new HashMap<>();
-
-        party = new ArrayList<>();
-        party.add(new Warrior("Arthur"));
-        party.add(new Mage("Merlino"));
-        party.add(new Druid("Panoramix"));
-
+        party = new ArrayList<>(List.of(new Warrior("Arthur"), new Mage("Merlino"), new Druid("Panoramix")));
         currentEncounter = monsterFactory.createEncounter(1);
-
-        gameLog.setText("Benvenuti nel Dungeon!\n");
         updateUIStats();
+    }
+
+    private String getAbilityInfo(Hero hero, String actionName) {
+        if (actionName == null) return "";
+        if (hero instanceof Warrior) {
+            if (actionName.contains("Fendente")) return "Attacco singolo potente. Danno fisico alto.";
+            return "Grido di battaglia: Riduce i danni subiti dal party per questo turno.";
+        }
+        if (hero instanceof Mage) {
+            if (actionName.contains("Tempesta")) return "Colpisce tutti i nemici con energia arcana.";
+            return "Infonde magia in un alleato, aumentando il suo Attacco (+15) per questo turno.";
+        }
+        if (hero instanceof Druid) {
+            if (actionName.contains("Radici")) return "Intrattiene il nemico infliggendo danni diretti.";
+            return "Cura l'intero party rigenerando 20 HP a ciascuno.";
+        }
+        return "";
+    }
+
+    private String getHeroAttackName(Hero hero) {
+        if (hero instanceof Warrior) return "Fendente Pesante";
+        if (hero instanceof Mage) return "Tempesta Arcana (AoE)";
+        if (hero instanceof Druid) return "Radici Stritolanti";
+        return "Attacco";
+    }
+
+    private String getHeroBuffName(Hero hero) {
+        if (hero instanceof Warrior) return "Mura di Ferro (Buff Party)";
+        if (hero instanceof Mage) return "Saggezza di Avalon (Buff Alleato)";
+        if (hero instanceof Druid) return "Elisir di Vita (Cura Party)";
+        return "Buff";
     }
 
     @FXML
     public void onAttackButtonClick() {
         if (currentEncounter.isEmpty()) {
-            gameLog.appendText("\nVITTORIA! Prossima stanza in arrivo...\n");
             currentEncounter = monsterFactory.createEncounter(2);
             updateUIStats();
             return;
         }
 
         List<CombatAction> actions = new ArrayList<>();
-
         for (Hero hero : party) {
-            if (hero.isAlive() && !currentEncounter.isEmpty()) {
-                ComboBox<String> actionCb = heroActionSelectors.get(hero);
-                ComboBox<String> targetCb = heroTargetSelectors.get(hero);
+            if (!hero.isAlive()) continue;
 
-                String selectedAction = actionCb.getValue();
-                String selectedTargetName = targetCb.getValue();
+            String actionName = heroActionSelectors.get(hero).getValue();
+            String targetName = heroTargetSelectors.get(hero).getValue();
 
-                boolean isAoE = "Attacco ad Area".equals(selectedAction);
+            ActionType type;
+            List<GameCharacter> targets = new ArrayList<>();
 
-                Monster targetSelected = currentEncounter.stream()
-                        .filter(m -> m.getName().equals(selectedTargetName))
-                        .findFirst()
-                        .orElse(currentEncounter.get(0));
-
-                if (isAoE) {
-                    actions.add(new CombatAction(hero, new ArrayList<>(currentEncounter), true));
+            if (actionName.equals(getHeroAttackName(hero))) {
+                if (hero instanceof Warrior || hero instanceof Druid) {
+                    type = ActionType.SINGLE_ATTACK;
+                    Monster target = currentEncounter.stream()
+                            .filter(m -> m.getName().equals(targetName)).findFirst().orElse(currentEncounter.get(0));
+                    targets.add(target);
                 } else {
-                    actions.add(new CombatAction(hero, List.of(targetSelected), false));
+                    type = ActionType.AOE_ATTACK;
+                    targets.addAll(currentEncounter);
+                }
+            } else {
+                if (hero instanceof Warrior) {
+                    type = ActionType.BUFF_DEFENSE_PARTY;
+                    targets.addAll(party);
+                } else if (hero instanceof Druid) {
+                    type = ActionType.HEAL_PARTY;
+                    targets.addAll(party);
+                } else {
+                    type = ActionType.BUFF_ATTACK_SINGLE;
+                    Hero targetAlly = party.stream()
+                            .filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero);
+                    targets.add(targetAlly);
                 }
             }
+
+            actions.add(new CombatAction(hero, targets, type));
         }
 
-        String turnResult = combatManager.executeTacticalTurn(actions, party, currentEncounter);
-        gameLog.appendText("\n--- TURNO TATTICO ---\n" + turnResult);
-
+        gameLog.appendText("\n" + combatManager.executeTacticalTurn(actions, party, currentEncounter));
         updateUIStats();
     }
 
@@ -92,54 +120,71 @@ public class HelloController {
         partyBox.getChildren().clear();
         enemyBox.getChildren().clear();
         commandCenterBox.getChildren().clear();
-        heroActionSelectors.clear();
-        heroTargetSelectors.clear();
 
-        List<String> aliveMonsterNames = new ArrayList<>();
-        for (Monster monster : currentEncounter) {
-            if (monster.isAlive()) {
-                addStatBar(enemyBox, monster, "red");
-                aliveMonsterNames.add(monster.getName());
-            }
-        }
+        List<String> monsterNames = currentEncounter.stream().filter(Monster::isAlive).map(Monster::getName).toList();
+        List<String> heroNames = party.stream().filter(Hero::isAlive).map(Hero::getName).toList();
+
+        for (Monster m : currentEncounter) if (m.isAlive()) addStatBar(enemyBox, m, "red");
 
         for (Hero hero : party) {
-            if (hero.isAlive()) {
-                addStatBar(partyBox, hero, "green");
+            if (!hero.isAlive()) continue;
+            addStatBar(partyBox, hero, "green");
 
-                HBox row = new HBox(10);
-                row.setAlignment(javafx.geometry.Pos.CENTER);
+            VBox heroCommandBox = new VBox(5);
+            heroCommandBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-                Label nameLabel = new Label("Ordini per " + hero.getName() + ": ");
-                nameLabel.setStyle("-fx-font-weight: bold;");
+            HBox row = new HBox(10);
+            row.setAlignment(javafx.geometry.Pos.CENTER);
 
-                ComboBox<String> actionCb = new ComboBox<>();
-                actionCb.getItems().addAll("Attacco Singolo", "Attacco ad Area");
-                actionCb.getSelectionModel().selectFirst();
+            ComboBox<String> actionCb = new ComboBox<>();
+            actionCb.getItems().addAll(getHeroAttackName(hero), getHeroBuffName(hero));
 
-                ComboBox<String> targetCb = new ComboBox<>();
-                targetCb.getItems().addAll(aliveMonsterNames);
-                if (!aliveMonsterNames.isEmpty()) {
-                    targetCb.getSelectionModel().selectFirst();
+            ComboBox<String> targetCb = new ComboBox<>();
+
+            Label personalDescLabel = new Label(getAbilityInfo(hero, getHeroAttackName(hero)));
+            personalDescLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #555555; -fx-font-size: 12px;");
+
+            actionCb.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal == null) return;
+
+                personalDescLabel.setText(getAbilityInfo(hero, newVal));
+
+                targetCb.getItems().clear();
+
+                if (newVal.equals(getHeroAttackName(hero))) {
+                    if (hero instanceof Mage) {
+                        targetCb.setDisable(true);
+                    } else {
+                        targetCb.getItems().addAll(monsterNames);
+                        if (!monsterNames.isEmpty()) targetCb.getSelectionModel().selectFirst();
+                        targetCb.setDisable(false);
+                    }
+                } else {
+                    if (hero instanceof Mage) {
+                        targetCb.getItems().addAll(heroNames);
+                        if (!heroNames.isEmpty()) targetCb.getSelectionModel().selectFirst();
+                        targetCb.setDisable(false);
+                    } else {
+                        targetCb.setDisable(true);
+                    }
                 }
+            });
 
-                actionCb.setOnAction(e -> {
-                    targetCb.setDisable("Attacco ad Area".equals(actionCb.getValue()));
-                });
+            actionCb.getSelectionModel().selectFirst();
 
-                row.getChildren().addAll(nameLabel, actionCb, targetCb);
-                commandCenterBox.getChildren().add(row);
+            heroActionSelectors.put(hero, actionCb);
+            heroTargetSelectors.put(hero, targetCb);
+            row.getChildren().addAll(new Label(hero.getName() + ":"), actionCb, targetCb);
 
-                heroActionSelectors.put(hero, actionCb);
-                heroTargetSelectors.put(hero, targetCb);
-            }
+            heroCommandBox.getChildren().addAll(row, personalDescLabel);
+            commandCenterBox.getChildren().add(heroCommandBox);
         }
     }
 
-    private void addStatBar(VBox box, it.unicam.cs.mpgc.rpg123388.model.GameCharacter character, String color) {
-        Label label = new Label(character.getName() + " (" + character.getHealth() + "/" + character.getMaxHealth() + ")");
-        ProgressBar bar = new ProgressBar((double) character.getHealth() / character.getMaxHealth());
-        bar.setStyle("-fx-accent: " + color + ";");
-        box.getChildren().addAll(label, bar);
+    private void addStatBar(VBox box, it.unicam.cs.mpgc.rpg123388.model.GameCharacter c, String color) {
+        Label l = new Label(c.getName() + " (" + c.getHealth() + "/" + c.getMaxHealth() + ")");
+        ProgressBar b = new ProgressBar((double) c.getHealth() / c.getMaxHealth());
+        b.setStyle("-fx-accent: " + color + ";");
+        box.getChildren().addAll(l, b);
     }
 }
