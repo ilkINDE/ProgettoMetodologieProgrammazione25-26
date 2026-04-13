@@ -181,10 +181,24 @@ public class HelloController {
         }
     }
 
-    private void addStatBar(VBox box, it.unicam.cs.mpgc.rpg123388.model.GameCharacter c, String color) {
-        Label l = new Label(c.getName() + " (" + c.getHealth() + "/" + c.getMaxHealth() + ")");
+    private void addStatBar(VBox box, GameCharacter c, String color) {
+        String infoText;
+
+        if (c instanceof Hero) {
+            Hero hero = (Hero) c;
+            int xpForNextLevel = hero.getLevel() * 100;
+            infoText = hero.getName() + " - Lvl " + hero.getLevel() + " [XP: " + hero.getExperience() + "/" + xpForNextLevel + "]\n"
+                    + "HP: " + hero.getHealth() + "/" + hero.getMaxHealth();
+        } else {
+            infoText = c.getName() + " (" + c.getHealth() + "/" + c.getMaxHealth() + ")";
+        }
+
+        Label l = new Label(infoText);
+        l.setStyle("-fx-font-weight: bold; -fx-text-alignment: center;");
+
         ProgressBar b = new ProgressBar((double) c.getHealth() / c.getMaxHealth());
         b.setStyle("-fx-accent: " + color + ";");
+
         box.getChildren().addAll(l, b);
     }
 }
