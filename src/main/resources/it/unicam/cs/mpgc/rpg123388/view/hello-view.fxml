@@ -115,4 +115,20 @@
         <Button text="Esegui Turno" onAction="#onAttackButtonClick"
                 style="-fx-font-size: 18px; -fx-padding: 12 30; -fx-cursor: hand; -fx-background-color: #27ae60; -fx-background-radius: 6; -fx-text-fill: white; -fx-font-weight: bold; -fx-effect: dropshadow(two-pass-box, rgba(0,0,0,0.3), 4, 0, 0, 3);" />
     </VBox>
+    <VBox fx:id="gameOverScreen" alignment="CENTER" spacing="20.0" visible="false" managed="false" style="-fx-background-color: #1a0505;">
+        <padding><Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/></padding>
+
+        <Label text="IL PARTY E' STATO SCONFITTO" style="-fx-font-size: 45px; -fx-font-weight: bold; -fx-text-fill: #e74c3c; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 5);" />
+
+        <Separator style="-fx-background-color: #c0392b; -fx-padding: 2;"/>
+
+        <VBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: #2c3e50; -fx-padding: 30; -fx-background-radius: 15; -fx-border-color: #c0392b; -fx-border-radius: 15; -fx-border-width: 2; -fx-min-width: 400;">
+            <Label text="📜 Rapporto della Spedizione:" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f1c40f;" />
+
+            <Label fx:id="statsLabel" text="[Dati in caricamento...]" style="-fx-font-size: 16px; -fx-text-fill: #ecf0f1; -fx-font-family: 'Consolas', monospace;" />
+        </VBox>
+
+        <Button text="Chiudi Gioco" onAction="#onExitClick"
+                style="-fx-font-size: 18px; -fx-padding: 10 30; -fx-cursor: hand; -fx-background-color: #c0392b; -fx-background-radius: 5; -fx-text-fill: white; -fx-font-weight: bold;" />
+    </VBox>
 </StackPane>
