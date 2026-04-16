@@ -6,12 +6,20 @@ import it.unicam.cs.mpgc.rpg123388.model.villain.GoblinShaman;
 import it.unicam.cs.mpgc.rpg123388.model.villain.Monster;
 import it.unicam.cs.mpgc.rpg123388.model.villain.Orc;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class CombatManager {
 
     private final Random random = new Random();
+
+    private Map<String, Integer> killCount = new HashMap<>();
+
+    public Map<String, Integer> getKillCount() {
+        return killCount;
+    }
 
     public String executeTacticalTurn(List<CombatAction> playerActions, List<Hero> party, List<Monster> enemies) {
         StringBuilder log = new StringBuilder();
@@ -136,7 +144,10 @@ public class CombatManager {
         log.append(" -> ").append(target.getName()).append(" subisce ").append(hero.getAttackPower()).append(" danni.\n");
 
         if (!target.isAlive()) {
+
             log.append(" -> ").append(target.getName()).append(" è stato sconfitto!\n");
+
+            killCount.put(target.getName(), killCount.getOrDefault(target.getName(), 0) + 1);
 
             int totalXp = target.getXpReward();
             int sharedXp = totalXp / 2;
