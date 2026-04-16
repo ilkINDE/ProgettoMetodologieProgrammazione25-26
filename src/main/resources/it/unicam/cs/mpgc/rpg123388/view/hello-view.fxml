@@ -88,7 +88,7 @@
             </VBox>
         </HBox>
 
-        <Button fx:id="btnStart" text="Varcate il Dungeon!" disable="true" onAction="#onStartGameClick"
+        <Button fx:id="btnStart" text="Entra nel Dungeon!" disable="true" onAction="#onStartGameClick"
                 style="-fx-font-size: 22px; -fx-padding: 18 50; -fx-cursor: hand; -fx-background-color: #e67e22; -fx-background-radius: 10; -fx-text-fill: white; -fx-font-weight: bold; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 6, 0, 0, 4);" />
     </VBox>
 

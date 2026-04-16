@@ -6,7 +6,7 @@ plugins {
     id("org.beryx.jlink") version "2.25.0"
 }
 
-group = "com.example"
+group = "it.unicam.cs.mpgc.rpg123388"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -26,8 +26,8 @@ tasks.withType<JavaCompile> {
 }
 
 application {
-    mainModule.set("com.example.progettometodologieprogrammazione2526")
-    mainClass.set("com.example.progettometodologieprogrammazione2526.HelloApplication")
+    mainModule.set("it.unicam.cs.mpgc.rpg123388")
+    mainClass.set("it.unicam.cs.mpgc.rpg123388.view.Launcher")
 }
 
 javafx {
