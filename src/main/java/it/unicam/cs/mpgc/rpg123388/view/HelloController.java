@@ -184,18 +184,40 @@ public class HelloController {
     }
 
     private void addStatBar(VBox box, GameCharacter c, String color) {
-        String info;
+        VBox characterBox = new VBox(5);
+
+        if (c instanceof Hero) {
+            characterBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        } else {
+            characterBox.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        }
+
+        Label nameLabel;
+        Label detailLabel = new Label();
+
         if (c instanceof Hero) {
             Hero h = (Hero) c;
-            info = String.format("%s - Lvl %d [XP:%d/%d]\nHP:%d/%d",
-                    h.getName(), h.getLevel(), h.getExperience(), h.getLevel()*100, h.getHealth(), h.getMaxHealth());
-        } else info = c.getName() + " (" + c.getHealth() + "/" + c.getMaxHealth() + ")";
+            nameLabel = new Label(h.getName() + " (Lvl " + h.getLevel() + ")");
+            nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50;");
 
-        Label l = new Label(info);
-        l.setStyle("-fx-font-weight: bold; -fx-text-alignment: center; -fx-font-size: 11px;");
-        ProgressBar b = new ProgressBar((double) c.getHealth() / c.getMaxHealth());
-        b.setStyle("-fx-accent: " + color + ";");
-        box.getChildren().addAll(l, b);
+            detailLabel.setText("XP: " + h.getExperience() + " / " + (h.getLevel() * 100) + "  |  HP: " + h.getHealth() + " / " + h.getMaxHealth());
+            detailLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7f8c8d; -fx-font-weight: bold;");
+        } else {
+            nameLabel = new Label(c.getName());
+            nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #c0392b;");
+
+            detailLabel.setText("HP: " + c.getHealth() + " / " + c.getMaxHealth());
+            detailLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7f8c8d; -fx-font-weight: bold;");
+        }
+
+        ProgressBar hpBar = new ProgressBar((double) c.getHealth() / c.getMaxHealth());
+        hpBar.setPrefWidth(240);
+        hpBar.setPrefHeight(18);
+
+        hpBar.setStyle("-fx-accent: " + color + "; -fx-control-inner-background: #ecf0f1; -fx-background-color: transparent; -fx-padding: 0;");
+
+        characterBox.getChildren().addAll(nameLabel, hpBar, detailLabel);
+        box.getChildren().add(characterBox);
     }
 
     private String getAbilityInfo(Hero hero, String actionName) {
