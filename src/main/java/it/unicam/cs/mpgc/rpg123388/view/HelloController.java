@@ -19,6 +19,8 @@ public class HelloController {
     @FXML private TextArea gameLog;
     @FXML private VBox partyBox, enemyBox, commandCenterBox;
     @FXML private Label roomLabel;
+    @FXML private VBox gameOverScreen;
+    @FXML private Label statsLabel;
 
     private List<Hero> party;
     private List<Monster> currentEncounter;
@@ -122,7 +124,11 @@ public class HelloController {
         if (currentEncounter.isEmpty()) {
             gameLog.appendText("\nStanza ripulita! Clicca di nuovo per avanzare.\n");
         }
-
+        boolean tuttiMorti = party.stream().noneMatch(Hero::isAlive);
+        if (tuttiMorti) {
+            mostraGameOver();
+            return;
+        }
         updateUIStats();
     }
 
@@ -218,6 +224,38 @@ public class HelloController {
 
         characterBox.getChildren().addAll(nameLabel, hpBar, detailLabel);
         box.getChildren().add(characterBox);
+    }
+
+    private void mostraGameOver() {
+        gameScreen.setVisible(false);
+        gameScreen.setManaged(false);
+        gameOverScreen.setVisible(true);
+        gameOverScreen.setManaged(true);
+
+        StringBuilder stats = new StringBuilder();
+        stats.append(" Profondità Massima: Stanza ").append(monsterFactory.getRoomCounter()).append("\n\n");
+
+        stats.append(" Bestiario Sconfitto:\n");
+        Map<String, Integer> kills = combatManager.getKillCount();
+        if (kills.isEmpty()) {
+            stats.append(" Nessuno, fallimento.\n");
+        } else {
+            kills.forEach((nome, quantita) ->
+                    stats.append("   - ").append(nome).append(": ").append(quantita).append(" uccisi\n")
+            );
+        }
+
+        stats.append("\n Stato finale degli eroi:\n");
+        for (Hero h : party) {
+            stats.append("   - ").append(h.getName()).append(": Livello ").append(h.getLevel()).append("\n");
+        }
+
+        statsLabel.setText(stats.toString());
+    }
+
+    @FXML
+    public void onExitClick() {
+        System.exit(0);
     }
 
     private String getAbilityInfo(Hero hero, String actionName) {
