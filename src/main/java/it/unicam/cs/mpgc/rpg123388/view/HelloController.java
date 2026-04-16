@@ -3,6 +3,7 @@ package it.unicam.cs.mpgc.rpg123388.view;
 import it.unicam.cs.mpgc.rpg123388.model.*;
 import it.unicam.cs.mpgc.rpg123388.model.heros.*;
 import it.unicam.cs.mpgc.rpg123388.model.villain.*;
+import it.unicam.cs.mpgc.rpg123388.persistence.ScoreManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -250,6 +251,7 @@ public class HelloController {
             stats.append("   - ").append(h.getName()).append(": Livello ").append(h.getLevel()).append("\n");
         }
 
+        ScoreManager.saveRunStats(stats.toString());
         statsLabel.setText(stats.toString());
     }
 
