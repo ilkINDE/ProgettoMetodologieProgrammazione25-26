@@ -20,6 +20,9 @@ Esecuzione: comando "./gradlew run"
 Oppure:
 aprire la classe Launcher nella cartella view ed eseguire.
 
+
+
 Dichiarazione sull'uso dell'Intelligenza Artificiale
+
 Durante la realizzazione di questo progetto, sono stati impiegati strumenti di Intelligenza Artificiale come supporto allo sviluppo. L'IA è stata utilizzata per brainstorming sulle formule di bilanciamento del gameplay (scaling dei mostri) e come supporto al debugging della configurazione dell'ambiente di lavoro (Gradle).
 Una dichiarazione dettagliata dei task specifici è disponibile nella Wiki del progetto.
