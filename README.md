@@ -4,7 +4,7 @@ Un Dungeon Crawler procedurale in stile *Roguelike/Endless Run*, sviluppato in J
 ## Panoramica del Gioco
 Il giocatore gestisce un party di 3 eroi selezionati da un roster di 5 classi (Guerriero, Mago, Druido, Paladino, Ladro). L'obiettivo è sopravvivere il più a lungo possibile in un dungeon infinito. 
 I nemici e i Boss (che appaiono ogni 5 stanze) scalano dinamicamente in difficoltà (HP e Attacco) a ogni livello superato, costringendo il giocatore a utilizzare combinazioni di cure, buff difensivi/offensivi e attacchi.
-Al Game Over, il sistema salva un **Diario della Spedizione** permanente su file di testo (`run_history.txt`), persistendo i record e le statistiche di gioco.
+Al Game Over, il sistema salva un **Diario della Spedizione** permanente in un file in formato XML (run_history.xml), persistendo i record e le statistiche dettagliate di ogni partita.
 
 ## Requisiti e Avvio Rapido
 In conformità con le specifiche del corso, il progetto è configurato per essere compilato ed eseguito interamente tramite **Gradle** da riga di comando.
