@@ -251,7 +251,7 @@ public class HelloController {
             stats.append("   - ").append(h.getName()).append(": Livello ").append(h.getLevel()).append("\n");
         }
 
-        ScoreManager.saveRunStats(stats.toString());
+        ScoreManager.saveRunStats(monsterFactory.getRoomCounter(), stats.toString());
         statsLabel.setText(stats.toString());
     }
 
