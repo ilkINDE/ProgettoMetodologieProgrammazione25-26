@@ -12,4 +12,9 @@ public class Mage extends Hero {
         increaseAttackPower(10); // Aumenta tantissimo l'attacco
         System.out.println(getName() + " il Mago è salito al livello " + getLevel() + "!");
     }
+
+    @Override public String getAttackName() { return "Tempesta Arcana (AoE)"; }
+    @Override public String getBuffName() { return "Saggezza di Avalon (Buff Attacco)"; }
+    @Override public String getAttackDescription() { return "Attacco AoE magico."; }
+    @Override public String getBuffDescription() { return "Attacco alleato +15."; }
 }

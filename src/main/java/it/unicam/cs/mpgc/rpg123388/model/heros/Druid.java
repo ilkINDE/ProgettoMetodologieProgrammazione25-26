@@ -12,4 +12,9 @@ public class Druid extends Hero {
         increaseAttackPower(7);
         System.out.println(getName() + " il Druido è salito al livello " + getLevel() + "!");
     }
+
+    @Override public String getAttackName() { return "Radici Stritolanti"; }
+    @Override public String getBuffName() { return "Elisir di Vita (Cura Party)"; }
+    @Override public String getAttackDescription() { return "Danno a bersaglio singolo."; }
+    @Override public String getBuffDescription() { return "Cura il party (+20 HP)."; }
 }

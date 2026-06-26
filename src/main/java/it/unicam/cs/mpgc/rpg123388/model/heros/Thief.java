@@ -11,4 +11,9 @@ public class Thief extends Hero {
         this.increaseMaxHealth(10);
         this.increaseAttackPower(6);
     }
+
+    @Override public String getAttackName() { return "Pugnalata alle Spalle"; }
+    @Override public String getBuffName() { return "Concentrazione "; }
+    @Override public String getAttackDescription() { return "Danno letale su singolo bersaglio."; }
+    @Override public String getBuffDescription() { return "Concentrazione Letale: +15 Attacco Personale."; }
 }

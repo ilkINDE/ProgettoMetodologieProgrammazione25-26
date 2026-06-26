@@ -15,4 +15,9 @@ public class Warrior extends Hero {
         increaseAttackPower(5);
         System.out.println(getName() + " è salito di livello! Ora è al livello " + getLevel());
     }
+
+    @Override public String getAttackName() { return "Fendente Pesante"; }
+    @Override public String getBuffName() { return "Mura di Ferro"; }
+    @Override public String getAttackDescription() { return "Attacco fisico potente."; }
+    @Override public String getBuffDescription() { return "Danni subiti -10 (Party)."; }
 }

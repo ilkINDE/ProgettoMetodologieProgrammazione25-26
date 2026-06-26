@@ -11,4 +11,9 @@ public class Paladin extends Hero {
         this.increaseMaxHealth(25);
         this.increaseAttackPower(2);
     }
+
+    @Override public String getAttackName() { return "Martello della Giustizia"; }
+    @Override public String getBuffName() { return "Luce Divina "; }
+    @Override public String getAttackDescription() { return "Danno fisico contundente."; }
+    @Override public String getBuffDescription() { return "Cura il party (+20 HP)."; }
 }

@@ -30,4 +30,9 @@ public abstract class Hero extends BaseCharacter {
 
     // metodo per decidere come far salire le statistiche
     protected abstract void levelUpStats();
+
+    public abstract String getAttackName();
+    public abstract String getBuffName();
+    public abstract String getAttackDescription();
+    public abstract String getBuffDescription();
 }
