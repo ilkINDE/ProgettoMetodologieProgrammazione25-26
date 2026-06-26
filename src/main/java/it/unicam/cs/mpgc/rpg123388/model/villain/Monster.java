@@ -1,6 +1,9 @@
 package it.unicam.cs.mpgc.rpg123388.model.villain;
 
 import it.unicam.cs.mpgc.rpg123388.model.BaseCharacter;
+import it.unicam.cs.mpgc.rpg123388.model.heros.Hero;
+
+import java.util.List;
 
 public abstract class Monster extends BaseCharacter {
     private int xpReward;
@@ -26,4 +29,5 @@ public abstract class Monster extends BaseCharacter {
         this.xpReward += xpBoost;
     }
 
+    public abstract String executeTurn(List<Hero> heroes, List<Monster> allies);
 }
