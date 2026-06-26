@@ -141,7 +141,9 @@ public class HelloController {
         List<String> monsterNames = currentEncounter.stream().filter(Monster::isAlive).map(Monster::getName).toList();
         List<String> heroNames = party.stream().filter(Hero::isAlive).map(Hero::getName).toList();
 
-        for (Monster m : currentEncounter) if (m.isAlive()) addStatBar(enemyBox, m, "red");
+        for (Monster m : currentEncounter) {
+            if (m.isAlive()) addStatBar(enemyBox, m, "red");
+        }
 
         for (Hero hero : party) {
             if (!hero.isAlive()) continue;
@@ -153,17 +155,17 @@ public class HelloController {
             row.setAlignment(javafx.geometry.Pos.CENTER);
 
             ComboBox<String> actionCb = new ComboBox<>();
-            actionCb.getItems().addAll(getHeroAttackName(hero), getHeroBuffName(hero));
+            actionCb.getItems().addAll(hero.getAttackName(), hero.getBuffName());
 
             ComboBox<String> targetCb = new ComboBox<>();
-            Label personalDescLabel = new Label(getAbilityInfo(hero, getHeroAttackName(hero)));
+            Label personalDescLabel = new Label(hero.getAttackDescription());
             personalDescLabel.setStyle("-fx-font-style: italic; -fx-text-fill: #555555; -fx-font-size: 11px;");
 
             actionCb.valueProperty().addListener((obs, oldV, newV) -> {
-                personalDescLabel.setText(getAbilityInfo(hero, newV));
+                personalDescLabel.setText(newV.equals(hero.getAttackName()) ? hero.getAttackDescription() : hero.getBuffDescription());
                 targetCb.getItems().clear();
 
-                if (newV.equals(getHeroAttackName(hero))) {
+                if (newV.equals(hero.getAttackName())) {
                     if (hero instanceof Mage) {
                         targetCb.setDisable(true);
                     } else {
