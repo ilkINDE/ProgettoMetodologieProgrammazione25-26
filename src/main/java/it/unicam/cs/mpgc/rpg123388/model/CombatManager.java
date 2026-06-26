@@ -11,15 +11,78 @@ import java.util.Random;
 public class CombatManager {
 
     private final Random random = new Random();
-
     private Map<String, Integer> killCount = new HashMap<>();
 
     public Map<String, Integer> getKillCount() {
         return killCount;
     }
 
-    public String executeTacticalTurn(Monster monster, List<Hero> heroes, List<Monster> allies) {
-        return monster.executeTurn(heroes, allies);
+    public String executeTacticalTurn(List<CombatAction> playerActions, List<Hero> party, List<Monster> enemies) {
+        StringBuilder log = new StringBuilder();
+
+        for (Hero h : party) h.resetTemporaryBuffs();
+
+        for (CombatAction action : playerActions) {
+            Hero hero = action.getActor();
+            if (!hero.isAlive()) continue;
+
+            switch (action.getType()) {
+                case SINGLE_ATTACK:
+                    GameCharacter target = action.getTargets().get(0);
+                    if (target.isAlive() && target instanceof Monster) {
+                        log.append(hero.getName()).append(" si scaglia su ").append(target.getName()).append("!\n");
+                        dealDamageToMonster(hero, (Monster) target, log, enemies, party);
+                    }
+                    break;
+
+                case AOE_ATTACK:
+                    log.append(hero.getName()).append(" lancia Tempesta Arcana su tutti i nemici!\n");
+                    List<Monster> targetsCopy = List.copyOf(enemies);
+                    for (Monster m : targetsCopy) {
+                        dealDamageToMonster(hero, m, log, enemies, party);
+                    }
+                    break;
+
+                case HEAL_PARTY:
+                    log.append(hero.getName()).append(" lancia Elisir di Vita! Il party recupera HP.\n");
+                    for (Hero h : party) {
+                        if (h.isAlive()) {
+                            h.heal(20);
+                        }
+                    }
+                    break;
+
+                case BUFF_DEFENSE_PARTY:
+                    log.append(hero.getName()).append(" alza le Mura di Ferro! Danni ridotti per questo turno.\n");
+                    for (Hero h : party) {
+                        if (h.isAlive()) h.addTemporaryDamageReduction(10);
+                    }
+                    break;
+
+                case BUFF_ATTACK_SINGLE:
+                    GameCharacter ally = action.getTargets().get(0);
+                    if (ally.isAlive() && ally instanceof Hero) {
+                        log.append(hero.getName()).append(" infonde magia su ").append(ally.getName()).append(" (+15 Attacco)!\n");
+                        ((Hero) ally).addTemporaryAttackBoost(15);
+                    }
+                    break;
+            }
+        }
+
+        log.append("\n --- Controffensiva Nemica ---\n");
+        for (Monster monster : enemies) {
+            if (monster.isAlive() && !party.isEmpty()) {
+                List<Hero> aliveHeroes = party.stream().filter(Hero::isAlive).toList();
+                if (!aliveHeroes.isEmpty()) {
+                    String turnLog = monster.executeTurn(aliveHeroes, enemies);
+                    if (turnLog != null && !turnLog.isEmpty()) {
+                        log.append(turnLog).append("\n");
+                    }
+                }
+            }
+        }
+
+        return log.toString();
     }
 
     private void dealDamageToMonster(Hero hero, Monster target, StringBuilder log, List<Monster> enemies, List<Hero> party) {
@@ -27,9 +90,7 @@ public class CombatManager {
         log.append(" -> ").append(target.getName()).append(" subisce ").append(hero.getAttackPower()).append(" danni.\n");
 
         if (!target.isAlive()) {
-
             log.append(" -> ").append(target.getName()).append(" è stato sconfitto!\n");
-
             killCount.put(target.getName(), killCount.getOrDefault(target.getName(), 0) + 1);
 
             int totalXp = target.getXpReward();
@@ -38,11 +99,9 @@ public class CombatManager {
             for (Hero h : party) {
                 if (h.isAlive()) {
                     if (h == hero) {
-                        // Chi ha ucciso riceve il massimo della exp
                         h.gainExperience(totalXp);
                         log.append("    [!] ").append(h.getName()).append(" riceve ").append(totalXp).append(" XP (Colpo di grazia)!\n");
                     } else {
-                        // Gli altri ricevono metà exp
                         h.gainExperience(sharedXp);
                         log.append("    [+] ").append(h.getName()).append(" riceve ").append(sharedXp).append(" XP (Assistenza).\n");
                     }
