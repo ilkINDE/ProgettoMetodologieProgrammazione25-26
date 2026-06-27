@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg123388.model.heros;
 
+import it.unicam.cs.mpgc.rpg123388.model.ActionType;
 import it.unicam.cs.mpgc.rpg123388.model.BaseCharacter;
 
 public abstract class Hero extends BaseCharacter {
@@ -35,4 +36,8 @@ public abstract class Hero extends BaseCharacter {
     public abstract String getBuffName();
     public abstract String getAttackDescription();
     public abstract String getBuffDescription();
+
+    public abstract ActionType getAttackActionType();
+    public abstract ActionType getBuffActionType();
+    public abstract int getBuffEffectValue();
 }

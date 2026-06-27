@@ -1,5 +1,7 @@
 package it.unicam.cs.mpgc.rpg123388.model.heros;
 
+import it.unicam.cs.mpgc.rpg123388.model.ActionType;
+
 public class Thief extends Hero {
     public Thief(String name) {
         // Poca salute (60), attacco alto (20)
@@ -16,4 +18,8 @@ public class Thief extends Hero {
     @Override public String getBuffName() { return "Concentrazione "; }
     @Override public String getAttackDescription() { return "Danno letale su singolo bersaglio."; }
     @Override public String getBuffDescription() { return "Concentrazione Letale: +15 Attacco Personale."; }
+
+    @Override public ActionType getAttackActionType() { return ActionType.SINGLE_ATTACK; }
+    @Override public ActionType getBuffActionType() { return ActionType.BUFF_ATTACK_SINGLE; }
+    @Override public int getBuffEffectValue() { return 15; }
 }

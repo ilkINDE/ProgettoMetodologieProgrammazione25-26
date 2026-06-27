@@ -1,5 +1,6 @@
 package it.unicam.cs.mpgc.rpg123388.model.heros;
 
+import it.unicam.cs.mpgc.rpg123388.model.ActionType;
 import it.unicam.cs.mpgc.rpg123388.model.heros.Hero;
 
 public class Warrior extends Hero {
@@ -19,4 +20,8 @@ public class Warrior extends Hero {
     @Override public String getBuffName() { return "Mura di Ferro"; }
     @Override public String getAttackDescription() { return "Attacco fisico potente."; }
     @Override public String getBuffDescription() { return "Danni subiti -10 (Party)."; }
+
+    @Override public ActionType getAttackActionType() { return ActionType.SINGLE_ATTACK; }
+    @Override public ActionType getBuffActionType() { return ActionType.BUFF_DEFENSE_PARTY; }
+    @Override public int getBuffEffectValue() { return 10; }
 }
