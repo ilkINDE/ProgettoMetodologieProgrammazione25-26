@@ -13,7 +13,6 @@ public class Warrior extends Hero {
         // Il guerriero quando sale di livello guadagna molta vita e un po' di attacco
         increaseMaxHealth(20);
         increaseAttackPower(5);
-        System.out.println(getName() + " è salito di livello! Ora è al livello " + getLevel());
     }
 
     @Override public String getAttackName() { return "Fendente Pesante"; }

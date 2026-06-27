@@ -10,7 +10,6 @@ public class Mage extends Hero {
     protected void levelUpStats() {
         increaseMaxHealth(10); // Prende poca vita
         increaseAttackPower(10); // Aumenta tantissimo l'attacco
-        System.out.println(getName() + " il Mago è salito al livello " + getLevel() + "!");
     }
 
     @Override public String getAttackName() { return "Tempesta Arcana (AoE)"; }
