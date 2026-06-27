@@ -14,7 +14,7 @@ public class CombatManager {
     private Map<String, Integer> killCount = new HashMap<>();
 
     public Map<String, Integer> getKillCount() {
-        return killCount;
+        return java.util.Collections.unmodifiableMap(killCount);
     }
 
     public String executeTacticalTurn(List<CombatAction> playerActions, List<Hero> party, List<Monster> enemies) {
@@ -36,7 +36,7 @@ public class CombatManager {
                     break;
 
                 case AOE_ATTACK:
-                    log.append(hero.getName()).append(" lancia Tempesta Arcana su tutti i nemici!\n");
+                    log.append(hero.getName()).append(" lancia ").append(hero.getAttackName()).append(" su tutti i nemici!\n");
                     List<Monster> targetsCopy = List.copyOf(enemies);
                     for (Monster m : targetsCopy) {
                         dealDamageToMonster(hero, m, log, enemies, party);
@@ -44,26 +44,26 @@ public class CombatManager {
                     break;
 
                 case HEAL_PARTY:
-                    log.append(hero.getName()).append(" lancia Elisir di Vita! Il party recupera HP.\n");
+                    log.append(hero.getName()).append(" lancia ").append(hero.getBuffName()).append("! Il party recupera HP.\n");
                     for (Hero h : party) {
                         if (h.isAlive()) {
-                            h.heal(20);
+                            h.heal(hero.getBuffEffectValue());
                         }
                     }
                     break;
 
                 case BUFF_DEFENSE_PARTY:
-                    log.append(hero.getName()).append(" alza le Mura di Ferro! Danni ridotti per questo turno.\n");
+                    log.append(hero.getName()).append(" lancia ").append(hero.getBuffName()).append("! Danni ridotti per questo turno.\n");
                     for (Hero h : party) {
-                        if (h.isAlive()) h.addTemporaryDamageReduction(10);
+                        if (h.isAlive()) h.addTemporaryDamageReduction(hero.getBuffEffectValue());
                     }
                     break;
 
                 case BUFF_ATTACK_SINGLE:
                     GameCharacter ally = action.getTargets().get(0);
                     if (ally.isAlive() && ally instanceof Hero) {
-                        log.append(hero.getName()).append(" infonde magia su ").append(ally.getName()).append(" (+15 Attacco)!\n");
-                        ((Hero) ally).addTemporaryAttackBoost(15);
+                        log.append(hero.getName()).append(" lancia ").append(hero.getBuffName()).append(" su ").append(ally.getName()).append("!\n");
+                        ((Hero) ally).addTemporaryAttackBoost(hero.getBuffEffectValue());
                     }
                     break;
             }

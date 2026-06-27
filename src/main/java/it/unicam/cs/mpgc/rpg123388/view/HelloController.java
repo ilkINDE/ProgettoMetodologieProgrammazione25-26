@@ -91,32 +91,21 @@ public class HelloController {
             String actionName = heroActionSelectors.get(hero).getValue();
             String targetName = heroTargetSelectors.get(hero).getValue();
 
-            ActionType type;
+            ActionType type = actionName.equals(hero.getBuffName()) ? hero.getBuffActionType() : hero.getAttackActionType();
             List<GameCharacter> targets = new ArrayList<>();
 
-            if (actionName.equals(hero.getBuffName())) {
-                if (hero instanceof Warrior) {
-                    type = ActionType.BUFF_DEFENSE_PARTY;
-                    targets.addAll(party);
-                } else if (hero instanceof Druid || hero instanceof Paladin) {
-                    type = ActionType.HEAL_PARTY;
-                    targets.addAll(party);
-                } else if (hero instanceof Thief) {
-                    type = ActionType.BUFF_ATTACK_SINGLE;
-                    targets.add(hero);
-                } else {
-                    type = ActionType.BUFF_ATTACK_SINGLE;
-                    targets.add(party.stream().filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero));
-                }
+            if (type == ActionType.BUFF_DEFENSE_PARTY || type == ActionType.HEAL_PARTY) {
+                targets.addAll(party);
+            } else if (type == ActionType.AOE_ATTACK) {
+                targets.addAll(currentEncounter);
+            } else if (type == ActionType.BUFF_ATTACK_SINGLE) {
+                Hero selectedAlly = party.stream().filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero);
+                targets.add(selectedAlly);
             } else {
-                if (hero instanceof Mage) {
-                    type = ActionType.AOE_ATTACK;
-                    targets.addAll(currentEncounter);
-                } else {
-                    type = ActionType.SINGLE_ATTACK;
-                    targets.add(currentEncounter.stream().filter(m -> m.getName().equals(targetName)).findFirst().orElse(currentEncounter.get(0)));
-                }
+                Monster selectedMonster = currentEncounter.stream().filter(m -> m.getName().equals(targetName)).findFirst().orElse(currentEncounter.get(0));
+                targets.add(selectedMonster);
             }
+
             actions.add(new CombatAction(hero, targets, type));
         }
 
