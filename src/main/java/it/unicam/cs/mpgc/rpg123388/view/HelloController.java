@@ -94,7 +94,7 @@ public class HelloController {
             ActionType type;
             List<GameCharacter> targets = new ArrayList<>();
 
-            if (actionName.equals(getHeroBuffName(hero))) {
+            if (actionName.equals(hero.getBuffName())) {
                 if (hero instanceof Warrior) {
                     type = ActionType.BUFF_DEFENSE_PARTY;
                     targets.addAll(party);
@@ -260,32 +260,5 @@ public class HelloController {
     @FXML
     public void onExitClick() {
         System.exit(0);
-    }
-
-    private String getAbilityInfo(Hero hero, String actionName) {
-        if (hero instanceof Warrior) return actionName.contains("Fendente") ? "Attacco fisico potente." : "Danni subiti -10 (Party).";
-        if (hero instanceof Mage) return actionName.contains("Tempesta") ? "Attacco AoE magico." : "Attacco alleato +15.";
-        if (hero instanceof Druid) return actionName.contains("Radici") ? "Danno a bersaglio singolo." : "Cura il party (+20 HP).";
-        if (hero instanceof Paladin) return actionName.contains("Martello") ? "Danno fisico contundente." : "Cura il party (+20 HP).";
-        if (hero instanceof Thief) return actionName.contains("Pugnalata") ? "Danno letale su singolo bersaglio." : "Concentrazione Letale: +15 Attacco Personale.";
-        return "";
-    }
-
-    private String getHeroAttackName(Hero h) {
-        if(h instanceof Warrior) return "Fendente Pesante";
-        if(h instanceof Mage) return "Tempesta Arcana (AoE)";
-        if(h instanceof Druid) return "Radici Stritolanti";
-        if(h instanceof Paladin) return "Martello della Giustizia";
-        if(h instanceof Thief) return "Pugnalata alle Spalle";
-        return "Attacco";
-    }
-
-    private String getHeroBuffName(Hero h) {
-        if(h instanceof Warrior) return "Mura di Ferro (Buff Difesa)";
-        if(h instanceof Mage) return "Saggezza di Avalon (Buff Attacco)";
-        if(h instanceof Druid) return "Elisir di Vita (Cura Party)";
-        if(h instanceof Paladin) return "Luce Divina (Cura Party)";
-        if(h instanceof Thief) return "Concentrazione (Buff Personale)";
-        return "Buff";
     }
 }
