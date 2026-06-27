@@ -8,6 +8,8 @@ public class Paladin extends Hero {
         super(name, 120, 10);
     }
 
+    @Override public boolean requiresExternalBuffTarget() { return false; }
+
     @Override
     protected void levelUpStats() {
         this.increaseMaxHealth(25);

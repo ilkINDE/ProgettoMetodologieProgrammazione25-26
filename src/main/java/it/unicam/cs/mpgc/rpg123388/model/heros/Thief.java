@@ -8,6 +8,8 @@ public class Thief extends Hero {
         super(name, 60, 20);
     }
 
+    @Override public boolean requiresExternalBuffTarget() { return false; }
+
     @Override
     protected void levelUpStats() {
         this.increaseMaxHealth(10);
@@ -15,7 +17,7 @@ public class Thief extends Hero {
     }
 
     @Override public String getAttackName() { return "Pugnalata alle Spalle"; }
-    @Override public String getBuffName() { return "Concentrazione "; }
+    @Override public String getBuffName() { return "Concentrazione"; }
     @Override public String getAttackDescription() { return "Danno letale su singolo bersaglio."; }
     @Override public String getBuffDescription() { return "Concentrazione Letale: +15 Attacco Personale."; }
 

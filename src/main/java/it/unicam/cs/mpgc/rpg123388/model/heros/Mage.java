@@ -8,6 +8,8 @@ public class Mage extends Hero {
         super(name, 60, 25);
     }
 
+    @Override public boolean requiresExternalBuffTarget() { return true; }
+
     @Override
     protected void levelUpStats() {
         increaseMaxHealth(10); // Prende poca vita

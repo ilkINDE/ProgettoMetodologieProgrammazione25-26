@@ -9,6 +9,8 @@ public class Warrior extends Hero {
         super(name, 100, 15);
     }
 
+    @Override public boolean requiresExternalBuffTarget() { return false; }
+
     @Override
     protected void levelUpStats() {
         // Il guerriero quando sale di livello guadagna molta vita e un po' di attacco

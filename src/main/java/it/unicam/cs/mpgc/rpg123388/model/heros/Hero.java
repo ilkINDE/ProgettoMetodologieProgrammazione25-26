@@ -7,6 +7,7 @@ public abstract class Hero extends BaseCharacter {
 
     private int level;
     private int experience;
+    public abstract boolean requiresExternalBuffTarget();
 
     public Hero(String name, int maxHealth, int attackPower) {
         super(name, maxHealth, attackPower);

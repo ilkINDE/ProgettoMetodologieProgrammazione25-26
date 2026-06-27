@@ -8,11 +8,12 @@ public class Druid extends Hero {
         super(name, 80, 18);
     }
 
+    @Override public boolean requiresExternalBuffTarget() { return false; }
+
     @Override
     protected void levelUpStats() {
         increaseMaxHealth(15);
         increaseAttackPower(7);
-        System.out.println(getName() + " il Druido è salito al livello " + getLevel() + "!");
     }
 
     @Override public String getAttackName() { return "Radici Stritolanti"; }
