@@ -155,14 +155,14 @@ public class HelloController {
                 targetCb.getItems().clear();
 
                 if (newV.equals(hero.getAttackName())) {
-                    if (hero instanceof Mage) {
+                    if (hero.getAttackActionType() == ActionType.AOE_ATTACK) {
                         targetCb.setDisable(true);
                     } else {
                         targetCb.getItems().addAll(monsterNames);
                         targetCb.setDisable(false);
                     }
                 } else {
-                    if (hero instanceof Mage) {
+                    if (hero.requiresExternalBuffTarget()) {
                         targetCb.getItems().addAll(heroNames);
                         targetCb.setDisable(false);
                     } else {
