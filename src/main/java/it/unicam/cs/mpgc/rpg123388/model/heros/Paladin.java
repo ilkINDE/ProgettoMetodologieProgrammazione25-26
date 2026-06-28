@@ -17,7 +17,7 @@ public class Paladin extends Hero {
     }
 
     @Override public String getAttackName() { return "Martello della Giustizia"; }
-    @Override public String getBuffName() { return "Luce Divina "; }
+    @Override public String getBuffName() { return "Luce Divina"; }
     @Override public String getAttackDescription() { return "Danno fisico contundente."; }
     @Override public String getBuffDescription() { return "Cura il party (+20 HP)."; }
 
