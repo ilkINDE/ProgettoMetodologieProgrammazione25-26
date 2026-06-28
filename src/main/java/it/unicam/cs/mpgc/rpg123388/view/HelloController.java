@@ -23,20 +23,11 @@ public class HelloController {
     @FXML private VBox gameOverScreen;
     @FXML private Label statsLabel;
 
-    private List<Hero> party;
-    private List<Monster> currentEncounter;
-    private CombatManager combatManager;
-    private MonsterFactory monsterFactory;
+    private final GameEngine gameEngine = new GameEngine();
 
     private Map<Hero, ComboBox<String>> heroActionSelectors = new HashMap<>();
     private Map<Hero, ComboBox<String>> heroTargetSelectors = new HashMap<>();
 
-    @FXML
-    public void initialize() {
-        combatManager = new CombatManager();
-        monsterFactory = new MonsterFactory();
-        party = new ArrayList<>();
-    }
 
     @FXML
     public void onHeroSelectionChange() {
@@ -52,11 +43,14 @@ public class HelloController {
 
     @FXML
     public void onStartGameClick() {
-        if (chkWarrior.isSelected()) party.add(new Warrior("Arthur"));
-        if (chkMage.isSelected()) party.add(new Mage("Merlino"));
-        if (chkDruid.isSelected()) party.add(new Druid("Panoramix"));
-        if (chkPaladin.isSelected()) party.add(new Paladin("Uther"));
-        if (chkThief.isSelected()) party.add(new Thief("Garrett"));
+        List<Hero> selected = new ArrayList<>();
+        if (chkWarrior.isSelected()) selected.add(new Warrior("Arthur"));
+        if (chkMage.isSelected())    selected.add(new Mage("Merlino"));
+        if (chkDruid.isSelected())   selected.add(new Druid("Panoramix"));
+        if (chkPaladin.isSelected()) selected.add(new Paladin("Uther"));
+        if (chkThief.isSelected())   selected.add(new Thief("Garrett"));
+
+        gameEngine.startRun(selected);
 
         selectionScreen.setVisible(false);
         selectionScreen.setManaged(false);
@@ -67,25 +61,28 @@ public class HelloController {
     }
 
     private void prossimaStanza() {
-        currentEncounter = monsterFactory.generateNextRoom();
-        int stanzaCorrente = monsterFactory.getRoomCounter();
+        gameEngine.advanceRoom();
+        int stanzaCorrente = gameEngine.getCurrentRoom();
 
         roomLabel.setText("Stanza: " + stanzaCorrente);
-        String msg = (stanzaCorrente % 5 == 0) ? "!!! ATTENZIONE: UN BOSS APPARE !!!" : "Sei entrato in una nuova stanza.";
-        gameLog.appendText("\n" + msg + "\nIncontrati " + currentEncounter.size() + " nemici.\n");
+        String msg = (stanzaCorrente % 5 == 0)
+                ? " ATTENZIONE: UN BOSS APPARE!"
+                : "Sei entrato in una nuova stanza.";
+        gameLog.appendText("\n" + msg + "\nIncontrati "
+                + gameEngine.getCurrentEncounter().size() + " nemici.\n");
 
         updateUIStats();
     }
 
     @FXML
     public void onAttackButtonClick() {
-        if (currentEncounter.isEmpty()) {
+        if (gameEngine.isEncounterCleared()) {
             prossimaStanza();
             return;
         }
 
         List<CombatAction> actions = new ArrayList<>();
-        for (Hero hero : party) {
+        for (Hero hero : gameEngine.getParty()) {
             if (!hero.isAlive()) continue;
 
             String actionName = heroActionSelectors.get(hero).getValue();
@@ -95,27 +92,29 @@ public class HelloController {
             List<GameCharacter> targets = new ArrayList<>();
 
             if (type == ActionType.BUFF_DEFENSE_PARTY || type == ActionType.HEAL_PARTY) {
-                targets.addAll(party);
+                targets.addAll(gameEngine.getParty());
             } else if (type == ActionType.AOE_ATTACK) {
-                targets.addAll(currentEncounter);
+                targets.addAll(gameEngine.getCurrentEncounter());
             } else if (type == ActionType.BUFF_ATTACK_SINGLE) {
-                Hero selectedAlly = party.stream().filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero);
+                Hero selectedAlly = gameEngine.getParty().stream().filter(h -> h.getName().equals(targetName)).findFirst().orElse(hero);
                 targets.add(selectedAlly);
             } else {
-                Monster selectedMonster = currentEncounter.stream().filter(m -> m.getName().equals(targetName)).findFirst().orElse(currentEncounter.get(0));
+                Monster selectedMonster = gameEngine.getCurrentEncounter().stream()
+                        .filter(m -> m.getName().equals(targetName))
+                        .findFirst()
+                        .orElse(gameEngine.getCurrentEncounter().get(0));
                 targets.add(selectedMonster);
             }
 
             actions.add(new CombatAction(hero, targets, type));
         }
 
-        gameLog.appendText("\n" + combatManager.executeTacticalTurn(actions, party, currentEncounter));
+        gameLog.appendText("\n" + gameEngine.executeRound(actions));
 
-        if (currentEncounter.isEmpty()) {
+        if (gameEngine.isEncounterCleared()) {
             gameLog.appendText("\nStanza ripulita! Clicca di nuovo per avanzare.\n");
         }
-        boolean tuttiMorti = party.stream().noneMatch(Hero::isAlive);
-        if (tuttiMorti) {
+        if (gameEngine.isPartyDefeated()){
             mostraGameOver();
             return;
         }
@@ -127,14 +126,14 @@ public class HelloController {
         enemyBox.getChildren().clear();
         commandCenterBox.getChildren().clear();
 
-        List<String> monsterNames = currentEncounter.stream().filter(Monster::isAlive).map(Monster::getName).toList();
-        List<String> heroNames = party.stream().filter(Hero::isAlive).map(Hero::getName).toList();
+        List<String> monsterNames = gameEngine.getCurrentEncounter().stream().filter(Monster::isAlive).map(Monster::getName).toList();
+        List<String> heroNames = gameEngine.getParty().stream().filter(Hero::isAlive).map(Hero::getName).toList();
 
-        for (Monster m : currentEncounter) {
+        for (Monster m : gameEngine.getCurrentEncounter()) {
             if (m.isAlive()) addStatBar(enemyBox, m, "red");
         }
 
-        for (Hero hero : party) {
+        for (Hero hero : gameEngine.getParty()) {
             if (!hero.isAlive()) continue;
             addStatBar(partyBox, hero, "green");
 
@@ -225,10 +224,10 @@ public class HelloController {
         gameOverScreen.setManaged(true);
 
         StringBuilder stats = new StringBuilder();
-        stats.append(" Profondità Massima: Stanza ").append(monsterFactory.getRoomCounter()).append("\n\n");
+        stats.append(" Profondità Massima: Stanza ").append(gameEngine.getCurrentRoom()).append("\n\n");
 
         stats.append(" Bestiario Sconfitto:\n");
-        Map<String, Integer> kills = combatManager.getKillCount();
+        Map<String, Integer> kills = gameEngine.getKillCount();
         if (kills.isEmpty()) {
             stats.append(" Nessuno, fallimento.\n");
         } else {
@@ -238,11 +237,11 @@ public class HelloController {
         }
 
         stats.append("\n Stato finale degli eroi:\n");
-        for (Hero h : party) {
+        for (Hero h : gameEngine.getParty()) {
             stats.append("   - ").append(h.getName()).append(": Livello ").append(h.getLevel()).append("\n");
         }
 
-        ScoreManager.saveRunStats(monsterFactory.getRoomCounter(), kills, party);
+        ScoreManager.saveRunStats(gameEngine.getCurrentRoom(), kills, gameEngine.getParty());
         statsLabel.setText(stats.toString());
     }
 

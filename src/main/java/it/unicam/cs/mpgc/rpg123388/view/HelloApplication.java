@@ -15,8 +15,8 @@ public class HelloApplication extends Application {
         stage.setTitle("Dungeon Crawler RPG");
         stage.setScene(scene);
 
-        stage.setMinWidth(1600);
-        stage.setMinHeight(900);
+        stage.setMinWidth(1300);
+        stage.setMinHeight(800);
 
         stage.show();
     }
